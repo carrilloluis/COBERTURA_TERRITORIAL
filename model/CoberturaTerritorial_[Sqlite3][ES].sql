@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS [Cobertura Territorial] (
+	[id] CHAR(6) NOT NULL PRIMARY KEY,
+	[región] VARCHAR(80) NOT NULL,
+	[provincia] VARCHAR(80) NULL,
+	[distrito] VARCHAR(80) NULL
+) WITHOUT ROWID;
