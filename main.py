@@ -23,11 +23,35 @@ def error404(error):
 
 
 @app.route('/COBERTURA_TERRITORIAL/v1/', method='GET')
-def get_courses():
+def get_regions():
 	try:
 		with sqlite3.connect(DB_PATH) as connection:
 			with closing(connection.cursor()) as cursor:
-				cursor.execute("SELECT UPPER([id]) AS id, UPPER([provincia]) AS nm FROM [Cobertura Territorial] WHERE LEFT([id], 2)='08' AND ISNULL([distrito]) AND NOT ISNULL([provincia])", ())
+				cursor.execute("SELECT UPPER([id]) AS id, UPPER([región]) AS nm FROM [Cobertura Territorial] WHERE SUBSTR([id], 1, 2)='08' AND [distrito] IS NULL AND [provincia] IS NULL", ())
+				cursor.row_factory = sqlite3.Row
+				ds_ = [dict(r) for r in cursor.fetchall()]
+				return bottle.HTTPResponse(body=json.dumps({'data': ds_}), status=200, headers=MINIMAL_CORS)
+	except sqlite3.OperationalError as e:
+		return bottle.HTTPResponse(body=json.dumps({'msg': str(e)}), status=500)
+
+@app.route('/COBERTURA_TERRITORIAL/v1/provincia/', method='GET')
+def get_provinces():
+	try:
+		with sqlite3.connect(DB_PATH) as connection:
+			with closing(connection.cursor()) as cursor:
+				cursor.execute("SELECT DISTINCT UPPER([id]) AS id, UPPER([provincia]) AS nm FROM [Cobertura Territorial] WHERE SUBSTR([id], 1, 2)='08' AND [distrito] IS NULL AND [provincia] IS NOT NULL", ())
+				cursor.row_factory = sqlite3.Row
+				ds_ = [dict(r) for r in cursor.fetchall()]
+				return bottle.HTTPResponse(body=json.dumps({'data': ds_}), status=200, headers=MINIMAL_CORS)
+	except sqlite3.OperationalError as e:
+		return bottle.HTTPResponse(body=json.dumps({'msg': str(e)}), status=500)
+
+@app.route('/COBERTURA_TERRITORIAL/v1/distrito/<id>/', method='GET')
+def get_districts(id:str):
+	try:
+		with sqlite3.connect(DB_PATH) as connection:
+			with closing(connection.cursor()) as cursor:
+				cursor.execute("SELECT DISTINCT UPPER([id]) AS id, UPPER([distrito]) AS nm FROM [Cobertura Territorial] WHERE SUBSTR([id], 1, 2)='08' AND SUBSTR([id], 3, 2)=? AND [distrito] IS NOT NULL", (id, ))
 				cursor.row_factory = sqlite3.Row
 				ds_ = [dict(r) for r in cursor.fetchall()]
 				return bottle.HTTPResponse(body=json.dumps({'data': ds_}), status=200, headers=MINIMAL_CORS)
