@@ -21,7 +21,6 @@ def asset_files(filepath):
 def error404(error):
 	return 'Nothing here, sorry'
 
-
 @app.route('/COBERTURA_TERRITORIAL/v1/', method='GET')
 def get_regions():
 	try:
@@ -57,6 +56,15 @@ def get_districts(id:str):
 				return bottle.HTTPResponse(body=json.dumps({'data': ds_}), status=200, headers=MINIMAL_CORS)
 	except sqlite3.OperationalError as e:
 		return bottle.HTTPResponse(body=json.dumps({'msg': str(e)}), status=500)
+
+# openAPI v.3.x
+@app.route('/COBERTURA_TERRITORIAL/v1/oa/', method='GET')
+def get_oa():
+	_paths_ = {}
+	for route_ in app.routes:
+		_paths_[str(route_.rule)] = { route_.method : { 'summary' : '', 'responses': { '200' : { 'description' : 'success' }  } }}
+	__doc__ = { 'openapi' : '3.0.0', 'info' : { 'title' : 'Cobertura Territorial API', 'summary': 'Cobertura Territorial - CREE Cusco', 'description': 'Circunscribir a un espacio geográfico, aspectos como colegios, unidades de gestión, etc.', 'contact': { 'name' : 'Luis Carrillo Gutiérrez', 'email' : '...@gmail.com'}, 'version' : '0.0.1' }, 'paths' : _paths_ }
+	return bottle.HTTPResponse(body=json.dumps(__doc__), status=200, headers=MINIMAL_CORS)
 
 if __name__ == "__main__":
 	app.run(host='0.0.0.0', port=8098, reloader=True, debug=True)
